@@ -279,16 +279,16 @@ const user_hash = await createUserHash(process.env.REPLYZE_IDENTITY_SECRET!, { u
 
 It uses only Web Crypto (`crypto.subtle`), so it runs in Node 20 and newer, the Next.js Edge runtime, Bun, Deno and Cloudflare Workers. Never import it in client code.
 
-**3. Pass the user to the chat.** In the App Router, the root layout can do both on the server:
+**3. Pass the user to the chat.** In the App Router, the root layout can do both on the server. Looking up the user reads the request (its cookies), so that part goes in its own component inside `<Suspense>`: with `cacheComponents` on, which create-next-app 16.4 sets, `next build` stops on a layout that reads request data outside `<Suspense>`.
 
 ```tsx
 // app/layout.tsx: a server component
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { ReplyzeChat } from '@replyze/react';
 import { createUserHash } from '@replyze/react/server';
 import { getCurrentUser } from '@/lib/auth'; // your auth: { id, email, name } or null
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
+async function Chat() {
   const user = await getCurrentUser();
   const replyzeUser = user
     ? {
@@ -298,12 +298,17 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         user_hash: await createUserHash(process.env.REPLYZE_IDENTITY_SECRET!, { user_id: user.id }),
       }
     : null;
+  return <ReplyzeChat token={process.env.NEXT_PUBLIC_REPLYZE_TOKEN!} user={replyzeUser} />;
+}
 
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
         {children}
-        <ReplyzeChat token={process.env.NEXT_PUBLIC_REPLYZE_TOKEN!} user={replyzeUser} />
+        <Suspense fallback={null}>
+          <Chat />
+        </Suspense>
       </body>
     </html>
   );
