@@ -220,7 +220,7 @@ import { Replyze } from '@replyze/react';
 Replyze.pushEvent('Checkout started', { items: 3 });
 ```
 
-Calls made before the widget runs wait in order (up to 100) and run once it does. On the server they do nothing.
+Calls made before the widget runs wait in order (up to 100) and run once it does. When more wait, the oldest goes first, but never a `reset()`, `identify()` or `setUser()`. On the server they do nothing.
 
 ## Events
 
@@ -315,13 +315,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 }
 ```
 
+**Never serve this page from a shared cache.** The `user_hash` is in the HTML. A page cached for everyone (a CDN, ISR, `export const dynamic = 'force-static'`, or `'use cache'` around the user lookup) would identify every visitor as the user it was rendered for, and they would see that user's chats. Look the user up per request, as above.
+
 The `user` prop takes three kinds of value:
 
 | `user` | What happens |
 | --- | --- |
 | `undefined` (not passed) | Nothing. Use it while your auth is still loading on the client |
 | `null` | Nobody is signed in. If this browser identified a user through the prop before, even on an earlier page load, the chat calls `reset()`, so the next person on a shared computer starts fresh |
-| `{ user_id, email, name, user_hash }` | `identify()`, once per page load and again when a field changes. If another user was identified in this browser before, `reset()` comes first |
+| `{ user_id, email, name, user_hash }` | `identify()`, once per page load and again when a field changes. If another user was identified in this browser before, `reset()` comes first. So it does for a user with a `name` but neither `user_id` nor `email`, who can't be told apart from the previous one |
 
 **A route handler instead**, when the client decides who is signed in (Pages Router, a single-page app):
 
@@ -427,7 +429,7 @@ Replyze.on('message:received', (message) => {});     // message: ReplyzeMessage
 - **Unmounting doesn't remove the chat.** The widget has no "destroy" in its public API and is meant to live as long as the page, so it stays. To take it off some pages, see the FAQ.
 - **A snippet already on the page.** If `widget.js` is already there (a `<script>` snippet, a tag manager), `<ReplyzeChat />` uses that widget instead of loading a second one, and applies `language` and `tracking` with `setLanguage()` and `setTracking()`. `useReplyze()` follows such a widget even without `<ReplyzeChat />`. A widget that was already open when the package found it reads as closed until its next `open` or `close`.
 - **Calls before it runs.** Method calls wait in the package and run in order once the widget is running, after the package has subscribed to its events, so an early `open()` still shows in `isOpen`.
-- **`ready`.** The widget emits its own `ready` event while it starts, before any listener can exist, so this package emits `ready` itself when `window.Replyze` is running.
+- **`ready`.** This package emits `ready` itself, once, when it finds `window.Replyze` running, and doesn't pass on the widget's own. Since 2026-11-13 `widget.js` fires its `ready` after the queued commands ran and `window.Replyze` exists; older builds fired it before any listener could exist.
 - **Server rendering.** Nothing touches `window` during render. On the server, `useReplyze()` returns `status: "idle"` and the methods do nothing.
 - **The `user` prop** keeps a short fingerprint of who it identified in `localStorage` (`replyze-react:user`), not their id or email, so that after a sign-out with a full page load it can still call `reset()`.
 
@@ -479,7 +481,7 @@ npm run build        # dist/: ESM, CommonJS and .d.ts
 
 CI runs the unit tests on React 18 and 19, the real-widget tests, and the package checks (`npm pack --dry-run`, [publint](https://publint.dev) and [Are the Types Wrong](https://arethetypeswrong.github.io)). Changes are listed in [CHANGELOG.md](CHANGELOG.md); how a version is released is in [RELEASING.md](RELEASING.md).
 
-**What we ran (November 2026):** the unit tests (49) and the real-widget tests (4) on React 19.2 and React 18.3; `next build` of the example on Next.js 16.4 (React 19), of an App Router plus Pages Router app on Next.js 14.2 (React 18), and of the same app on Next.js 13.4 (React 18.2), with `createUserHash()` in a server component; a Vite 7 build and its dev server in StrictMode; and the built apps in Chromium against the production widget, with open, close, toggle, hide, show and `setLanguage()` through the hooks and no console errors. That browser test sent no messages and identified nobody.
+**What we ran (November 2026):** the unit tests (49) and the real-widget tests (4) on React 19.2 and React 18.3; `next build` of the example on Next.js 16.4 (React 19), of an App Router plus Pages Router app on Next.js 14.2 (React 18), and of the same app on Next.js 13.4 (React 18.2), with `createUserHash()` in a server component; a Vite 7 build and its dev server in StrictMode; and the built apps in Chromium against the production widget, with open, close, toggle, hide, show and `setLanguage()` through the hooks and no console errors. That browser test sent no messages and identified nobody. For 0.1.1 (13 November 2026): the unit tests (52) and the real-widget tests (4) against the `widget.js` released that day, which fires `ready` after its queue.
 
 ## More from Replyze
 

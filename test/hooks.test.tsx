@@ -119,6 +119,27 @@ describe('useReplyze()', () => {
     });
   });
 
+  it('never drops a waiting reset() or identify() when too many calls wait', () => {
+    render(<ReplyzeChat token="wgt_test" strategy="afterInteractive" />);
+    Replyze.pushEvent('first');
+    Replyze.reset();
+    Replyze.identify({ user_id: 7, email: 'bo@shop.example' });
+    for (let i = 0; i < 150; i++) Replyze.pushEvent(`event ${i}`);
+    let widget!: FakeWidget;
+    act(() => {
+      widget = deliverScript()!;
+    });
+    // (the fake's reset() also closes the chat)
+    const calls = widget.calls.filter(([m]) => m !== 'close');
+    expect(calls).toHaveLength(100);
+    expect(calls.slice(0, 2)).toEqual([
+      ['reset', []],
+      ['identify', [{ user_id: 7, email: 'bo@shop.example' }]],
+    ]);
+    expect(calls[2]).toEqual(['pushEvent', ['event 52']]);
+    expect(calls[99]).toEqual(['pushEvent', ['event 149']]);
+  });
+
   it('is idle on a page without <ReplyzeChat />, and calls wait', () => {
     function Probe() {
       const { status } = useReplyze();
@@ -197,6 +218,14 @@ describe('events', () => {
     Replyze.on('ready', ready);
     expect(ready).not.toHaveBeenCalled();
     await Promise.resolve();
+    expect(ready).toHaveBeenCalledTimes(1);
+  });
+
+  it('ready reaches a handler once, also now that widget.js fires its own after window.Replyze is set', () => {
+    const ready = vi.fn();
+    Replyze.on('ready', ready);
+    const widget = boot();
+    act(() => widget.emit('ready'));
     expect(ready).toHaveBeenCalledTimes(1);
   });
 

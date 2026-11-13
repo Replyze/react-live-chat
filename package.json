@@ -1,6 +1,6 @@
 {
   "name": "@replyze/react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "React live chat widget for Next.js and React apps: the Replyze AI support chat as a component, with hooks and identity verification",
   "type": "module",
   "main": "./dist/index.cjs",
