@@ -9,42 +9,60 @@
 
 # React live chat widget
 
-`@replyze/react` is a React live chat widget for Next.js and any React 18 or 19 app. One `<ReplyzeChat />` component puts the [Replyze](https://replyze.chat/?utm_source=github&utm_medium=react-live-chat) chat on your site: a floating launcher, an AI chatbot that answers from your knowledge base and hands over to your team, and live chat with your team. The `useReplyze()` hook lets your own buttons open the chat and show the unread count. Events are typed, and identity verification for signed-in users is built in. It works with the Next.js App Router and Pages Router, Vite and other React setups, and it is safe to render on the server.
+`@replyze/react` is a React live chat widget for Next.js and any React 18 or 19 app. One `<ReplyzeChat />` component puts the [Replyze](https://replyze.chat/?utm_source=github&utm_medium=react-live-chat) chat on your site: a floating launcher, an AI chatbot that answers from your knowledge base and hands over to your team, and live chat with your team. The `useReplyze()` hook lets your own buttons open the chat and show the unread count. Events are typed, and identity verification for signed-in users is built in. It works with the Next.js App Router (Next.js 13.4 and newer) and Pages Router, Vite and other React setups, and it is safe to render on the server.
 
-Replyze brings web chat, email, WhatsApp and Telegram into one inbox for your team (Messenger and Instagram are in beta). This package adds the web chat to a React app.
+**[Create a free account](https://client.replyze.chat/register?utm_source=github&utm_medium=react-live-chat&utm_content=cta-top)** · [Live demo](https://replyze.chat/?utm_source=github&utm_medium=react-live-chat&utm_content=live-demo) · [Docs](https://github.com/Replyze/replyze)
 
-[Website](https://replyze.chat/?utm_source=github&utm_medium=react-live-chat) · [Sign up](https://client.replyze.chat/register?utm_source=github&utm_medium=react-live-chat) · [Dashboard](https://client.replyze.chat/?utm_source=github&utm_medium=react-live-chat) · [Pricing](https://replyze.chat/pricing?utm_source=github&utm_medium=react-live-chat) · [JavaScript API and REST docs](https://github.com/Replyze/replyze)
+Replyze brings web chat, email, WhatsApp and Telegram into one inbox for your team (Messenger and Instagram are in beta). This package adds the web chat to a React app. The live demo is replyze.chat itself: the chat bubble in the bottom-right corner is the same widget.
+
+## Quickstart
+
+1. **Get your widget token.** [Create a free account](https://client.replyze.chat/register?utm_source=github&utm_medium=react-live-chat&utm_content=quickstart), then copy the token (`wgt_...`) from **Settings → Integrations → Install widget**.
+2. **Install the package** from GitHub:
+   ```sh
+   npm install github:Replyze/react-live-chat
+   ```
+3. **Render `<ReplyzeChat />` once**, near the root of your app:
+   ```tsx
+   import { ReplyzeChat } from '@replyze/react';
+
+   export default function App() {
+     return (
+       <>
+         <YourApp />
+         <ReplyzeChat token="wgt_YOUR_TOKEN" />
+       </>
+     );
+   }
+   ```
+
+Once the page has loaded, the chat launcher appears in the bottom corner. For Next.js, see [App Router](#nextjs-app-router) and [Pages Router](#nextjs-pages-router).
 
 ## Contents
 
-[Install](#install) · [Quick start](#quick-start) · [Next.js App Router](#nextjs-app-router) · [Next.js Pages Router](#nextjs-pages-router) · [Vite](#vite) · [Your widget token](#your-widget-token-and-allowed-domains) · [Props](#props) · [useReplyze()](#usereplyze) · [Events](#events) · [Identity verification](#identity-verification) · [Cookie consent](#cookie-consent) · [Performance](#performance) · [TypeScript](#typescript) · [How it works](#how-it-works) · [FAQ](#faq) · [Development](#development)
+[Install](#install) · [Your own chat button](#your-own-chat-button) · [Next.js App Router](#nextjs-app-router) · [Next.js Pages Router](#nextjs-pages-router) · [Vite](#vite) · [Your widget token](#your-widget-token-and-allowed-domains) · [Props](#props) · [useReplyze()](#usereplyze) · [Events](#events) · [Identity verification](#identity-verification) · [Cookie consent](#cookie-consent) · [Performance](#performance) · [TypeScript](#typescript) · [How it works](#how-it-works) · [FAQ](#faq) · [Development](#development)
 
 ## Install
 
-`@replyze/react` is coming to npm. Until then, install it from GitHub:
+`@replyze/react` is not on the npm registry yet. Install it from GitHub:
 
 ```sh
 npm install github:Replyze/react-live-chat
 ```
 
-You import it as `@replyze/react`. npm builds the package while it installs (its `prepare` script runs `tsup`), so the install needs git and takes a few seconds longer than a package from the registry. Peer dependency: React 18 or 19. You also need a Replyze account ([sign up](https://client.replyze.chat/register?utm_source=github&utm_medium=react-live-chat)).
+You import it as `@replyze/react`. npm builds the package while it installs (its `prepare` script runs `tsup`), so the install needs git and takes a few seconds longer than a package from the registry. Pin a commit or tag with `github:Replyze/react-live-chat#<ref>`.
 
-## Quick start
+After the first npm release (not yet), the registry install will be:
 
-```tsx
-import { ReplyzeChat } from '@replyze/react';
-
-export default function App() {
-  return (
-    <>
-      <YourApp />
-      <ReplyzeChat token="wgt_YOUR_TOKEN" />
-    </>
-  );
-}
+```sh
+npm install @replyze/react
 ```
 
-That is the whole setup: once the page has loaded, the chat launcher appears in the corner. Render `<ReplyzeChat />` once, near the root, so it stays mounted while people move between pages. The widget notices client-side route changes by itself.
+Requirements: React 18 or 19 (peer dependency). For the Next.js App Router, Next.js 13.4 or newer. You also need a Replyze account ([sign up](https://client.replyze.chat/register?utm_source=github&utm_medium=react-live-chat&utm_content=install)).
+
+Render `<ReplyzeChat />` once, near the root, so it stays mounted while people move between pages. The widget notices client-side route changes by itself.
+
+## Your own chat button
 
 An "Open chat" button with the unread count:
 
@@ -444,7 +462,9 @@ npm run build        # dist/: ESM, CommonJS and .d.ts
 
 `npm run test:widget` takes `REPLYZE_WIDGET_JS` (a local `widget.js`) or `REPLYZE_WIDGET_URL` to test another build.
 
-**What we ran (November 2026):** the unit tests (49) and the real-widget tests (4) on React 19.2 and React 18.3; `next build` of the example on Next.js 16.4 (React 19) and of an App Router plus Pages Router app on Next.js 14.2 (React 18), both installed from this repository with git; a Vite 7 build and its dev server in StrictMode; and the built apps in Chromium against the production widget, with open, close, toggle, hide, show and `setLanguage()` through the hooks and no console errors. That browser test sent no messages and identified nobody.
+CI runs the unit tests on React 18 and 19, the real-widget tests, and the package checks (`npm pack --dry-run`, [publint](https://publint.dev) and [Are the Types Wrong](https://arethetypeswrong.github.io)). Changes are listed in [CHANGELOG.md](CHANGELOG.md); how a version is released is in [RELEASING.md](RELEASING.md).
+
+**What we ran (November 2026):** the unit tests (49) and the real-widget tests (4) on React 19.2 and React 18.3; `next build` of the example on Next.js 16.4 (React 19), of an App Router plus Pages Router app on Next.js 14.2 (React 18), and of the same app on Next.js 13.4 (React 18.2), with `createUserHash()` in a server component; a Vite 7 build and its dev server in StrictMode; and the built apps in Chromium against the production widget, with open, close, toggle, hide, show and `setLanguage()` through the hooks and no console errors. That browser test sent no messages and identified nobody.
 
 ## More from Replyze
 

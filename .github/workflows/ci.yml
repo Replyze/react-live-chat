@@ -2,13 +2,21 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
   pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     name: React ${{ matrix.react }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -22,8 +30,38 @@ jobs:
       - run: npm ci
       - if: matrix.react == '18'
         run: npm install --no-save --ignore-scripts react@18.3.1 react-dom@18.3.1 @types/react@18.3.31 @types/react-dom@18.3.7
+      - run: node -p "'react ' + require('react/package.json').version + ', react-dom ' + require('react-dom/package.json').version"
       - run: npm run typecheck
       - run: npm test
-      # The package against the real widget.js from cdn.replyze.chat (only the Replyze API is faked).
-      - run: npm run test:widget
       - run: npm run build
+
+  widget:
+    # The package against the real widget.js from cdn.replyze.chat (only the Replyze API is faked).
+    name: Real widget.js
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test:widget
+
+  package:
+    name: Package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm pack --dry-run
+      - run: npx --yes publint@0.3.25 --strict
+      - run: npx --yes @arethetypeswrong/cli@0.18.5 --pack .
+      # The release workflow takes its notes from CHANGELOG.md: the current version needs a section.
+      - run: node scripts/changelog-notes.mjs "$(node -p "require('./package.json').version")"
