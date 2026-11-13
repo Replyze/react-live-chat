@@ -1,0 +1,95 @@
+{
+  "name": "@replyze/react",
+  "version": "0.1.0",
+  "description": "React live chat widget for Next.js and React apps: the Replyze AI support chat as a component, with hooks and identity verification",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./server": {
+      "import": {
+        "types": "./dist/server.d.ts",
+        "default": "./dist/server.js"
+      },
+      "require": {
+        "types": "./dist/server.d.cts",
+        "default": "./dist/server.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "server": [
+        "./dist/server.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:widget": "vitest run --config vitest.widget.config.ts",
+    "prepare": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsup",
+    "prepublishOnly": "npm run typecheck && npm test"
+  },
+  "keywords": [
+    "react",
+    "nextjs",
+    "next.js",
+    "live-chat",
+    "chat-widget",
+    "react-chat-widget",
+    "live-chat-widget",
+    "ai-chatbot",
+    "chatbot",
+    "customer-support",
+    "helpdesk",
+    "replyze"
+  ],
+  "homepage": "https://github.com/Replyze/react-live-chat#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Replyze/react-live-chat.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Replyze/react-live-chat/issues"
+  },
+  "license": "MIT",
+  "author": "Replyze (https://replyze.chat)",
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/react": "16.3.3",
+    "@types/node": "22.20.5",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "jsdom": "27.4.0",
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3",
+    "vitest": "3.2.4"
+  }
+}
